@@ -32,9 +32,9 @@ const router: Router = Router()
 // All bookmark routes require authentication
 router.use(authenticateToken)
 
-router.post("/", validateBookmark, createBookmark)
-router.get("/", getUserBookmarks)
-router.get("/:bookmark_id", getBookmark)
-router.delete("/:bookmark_id", deleteBookmark)
+router.post("/create", validateBookmark, createBookmark)
+router.get("/get", getUserBookmarks)
+router.get("/get/:bookmark_id", getBookmark)
+router.delete("/delete/:bookmark_id", deleteBookmark)
 
 export default router
