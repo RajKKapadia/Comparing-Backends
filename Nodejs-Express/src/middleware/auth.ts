@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express"
+import { Request, Response, NextFunction, RequestHandler } from "express"
 
 import { verifyToken } from "../utils/jwt"
 
@@ -14,7 +14,8 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
     const token = authHeader && authHeader.split(" ")[1]
 
     if (!token) {
-        return res.status(401).json({ error: "Access token required" })
+        res.status(401).json({ error: "Access token required" });
+        return;
     }
 
     try {
@@ -22,6 +23,6 @@ export const authenticateToken = (req: AuthRequest, res: Response, next: NextFun
         req.user = decoded
         next()
     } catch (error) {
-        return res.status(403).json({ error: "Invalid or expired token" })
+        res.status(403).json({ error: "Invalid or expired token" });
     }
 }

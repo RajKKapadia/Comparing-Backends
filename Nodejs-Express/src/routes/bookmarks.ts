@@ -1,4 +1,4 @@
-import { NextFunction, Router, Request, Response } from "express"
+import { NextFunction, Router, Request, Response, RequestHandler } from "express"
 
 import { z } from "zod"
 
@@ -15,11 +15,11 @@ const bookmarkSchema = z.object({
     url: z.string().min(1, "URL is required.")
 })
 
-const validateBookmark = (req: Request, res: Response, next: NextFunction) => {
+const validateBookmark: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
     const result = bookmarkSchema.safeParse(req.body)
     if (!result.success) {
         const requiredFields = Object.keys(bookmarkSchema.shape)
-        return res.status(400).json({
+        res.status(400).json({
             message: `Required fields: ${requiredFields.join(", ")}`,
         })
     }
@@ -32,9 +32,9 @@ const router: Router = Router()
 // All bookmark routes require authentication
 router.use(authenticateToken)
 
-router.post("/create", validateBookmark, createBookmark)
+router.post("/create", validateBookmark, createBookmark as RequestHandler)
 router.get("/get", getUserBookmarks)
-router.get("/get/:bookmark_id", getBookmark)
-router.delete("/delete/:bookmark_id", deleteBookmark)
+router.get("/get/:bookmark_id", getBookmark as RequestHandler)
+router.delete("/delete/:bookmark_id", deleteBookmark as RequestHandler)
 
 export default router
