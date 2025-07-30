@@ -1,12 +1,11 @@
-import { Response } from "express"
+import { Response, Request } from "express"
 import { eq, and } from "drizzle-orm"
 
 import { db } from "../drizzle/db"
 import { bookmarks } from "../drizzle/schema"
-import { AuthRequest } from "../middleware/auth"
 import { generateShortCode, isValidUrl } from "../utils/shortCode"
 
-export const createBookmark = async (req: AuthRequest, res: Response) => {
+export const createBookmark = async (req: Request, res: Response) => {
     try {
         const { title, url } = req.body
         const userId = req.user!.userId
@@ -19,7 +18,12 @@ export const createBookmark = async (req: AuthRequest, res: Response) => {
             return res.status(400).json({ error: "Invalid URL format" })
         }
 
-        const existingBookmark = await db.select().from(bookmarks).where(eq(bookmarks.originalUrl, url)).limit(1)
+        const existingBookmark = await db.query.bookmarks.findFirst({
+            where(fields, operators) {
+                return operators.eq(fields.originalUrl, url)
+            },
+        })
+
         if (existingBookmark) {
             return res.status(403).json({ error: "Already exists." })
         }
@@ -46,6 +50,7 @@ export const createBookmark = async (req: AuthRequest, res: Response) => {
             title,
             originalUrl: url,
             shortCode,
+
         }).returning()
 
         res.status(201).json({
@@ -65,7 +70,7 @@ export const createBookmark = async (req: AuthRequest, res: Response) => {
     }
 }
 
-export const getUserBookmarks = async (req: AuthRequest, res: Response) => {
+export const getUserBookmarks = async (req: Request, res: Response) => {
     try {
         const userId = req.user!.userId
 
@@ -92,14 +97,10 @@ export const getUserBookmarks = async (req: AuthRequest, res: Response) => {
     }
 }
 
-export const getBookmark = async (req: AuthRequest, res: Response) => {
+export const getBookmark = async (req: Request, res: Response) => {
     try {
-        const bookmarkId = parseInt(req.params.bookmark_id)
+        const bookmarkId = req.params.bookmark_id
         const userId = req.user!.userId
-
-        if (isNaN(bookmarkId)) {
-            return res.status(400).json({ error: "Invalid bookmark ID" })
-        }
 
         const [bookmark] = await db.select().from(bookmarks)
             .where(and(
@@ -130,14 +131,10 @@ export const getBookmark = async (req: AuthRequest, res: Response) => {
     }
 }
 
-export const deleteBookmark = async (req: AuthRequest, res: Response) => {
+export const deleteBookmark = async (req: Request, res: Response) => {
     try {
-        const bookmarkId = parseInt(req.params.bookmark_id)
+        const bookmarkId = req.params.bookmark_id
         const userId = req.user!.userId
-
-        if (isNaN(bookmarkId)) {
-            return res.status(400).json({ error: "Invalid bookmark ID" })
-        }
 
         // Soft delete by setting isActive to false
         const [updatedBookmark] = await db.update(bookmarks)

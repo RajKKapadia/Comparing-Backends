@@ -1,8 +1,8 @@
-import { pgTable, serial, varchar, text, timestamp, integer, boolean } from "drizzle-orm/pg-core"
+import { pgTable, uuid, varchar, text, timestamp, integer, boolean } from "drizzle-orm/pg-core"
 import { relations } from "drizzle-orm"
 
 export const users = pgTable("users", {
-    id: serial("id").primaryKey(),
+    id: uuid("id").primaryKey().defaultRandom(),
     email: varchar("email", { length: 255 }).notNull().unique(),
     password: varchar("password", { length: 255 }).notNull(),
     slat: varchar("salt", { length: 64 }).notNull(),
@@ -11,8 +11,8 @@ export const users = pgTable("users", {
 })
 
 export const bookmarks = pgTable("bookmarks", {
-    id: serial("id").primaryKey(),
-    userId: integer("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id").notNull().references(() => users.id, { onDelete: "cascade" }),
     title: varchar("title", { length: 255 }).notNull(),
     originalUrl: text("original_url").notNull(),
     shortCode: varchar("short_code", { length: 10 }).notNull().unique(),

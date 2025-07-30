@@ -15,13 +15,14 @@ const bookmarkSchema = z.object({
     url: z.string().min(1, "URL is required.")
 })
 
-const validateBookmark: RequestHandler = (req: Request, res: Response, next: NextFunction) => {
+const validateBookmark = (req: Request, res: Response, next: NextFunction): void => {
     const result = bookmarkSchema.safeParse(req.body)
     if (!result.success) {
         const requiredFields = Object.keys(bookmarkSchema.shape)
         res.status(400).json({
             message: `Required fields: ${requiredFields.join(", ")}`,
         })
+        return
     }
     req.body = result.data
     next()
