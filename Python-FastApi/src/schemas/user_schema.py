@@ -12,10 +12,10 @@ class NewUser(BaseModel):
 
 
 class CurrentUser(NewUser):
+    id: str
+    email: str
+    hashed_password: str
     session_id: str = None
-
-    class Config:
-        from_attributes = True
 
 
 class SessionData(BaseModel):

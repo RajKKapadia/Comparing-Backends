@@ -1,6 +1,7 @@
-import uuid
 from datetime import datetime, timezone
 import json
+import random
+import string
 
 from fastapi import HTTPException, status, Depends
 from passlib.context import CryptContext
@@ -10,17 +11,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src import config
 from src.models.user_model import User
+from src.models.bookmark_model import Bookmark
 from src.schemas.user_schema import SessionData, CurrentUser
 from src.database import get_database
 
 pwd_context = CryptContext(schemes=["sha256_crypt"])
-
-
-def generate_uuid() -> str:
-    """
-    Generate a unique UUID for database records
-    """
-    return str(uuid.uuid4())
 
 
 def hash_password(password: str) -> str:
@@ -83,6 +78,26 @@ async def get_current_user(
             detail="User not found",
             headers={"WWW-Authenticate": "Bearer"},
         )
-    current_user = CurrentUser.model_validate(db_user)
-    current_user.session_id = session_id
+    current_user = CurrentUser(
+        id=db_user.id,
+        email=db_user.email,
+        hashed_password=db_user.hashed_password,
+        session_id=session_id,
+    )
     return current_user
+
+
+def generate_short_code(length: int = 16):
+    chars = string.ascii_letters + string.digits
+    return "".join(random.choice(chars) for _ in range(length))
+
+
+async def create_unique_short_code(db: AsyncSession):
+    while True:
+        short_code = generate_short_code()
+        result = await db.execute(
+            select(Bookmark).filter(Bookmark.short_code == short_code)
+        )
+        exists = result.scalars().first()
+        if not exists:
+            return short_code

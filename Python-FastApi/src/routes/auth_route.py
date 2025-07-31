@@ -61,7 +61,7 @@ async def handle_post_register(
 
     config.redis_client.set(
         name=session_id,
-        value=session_data,
+        value=session_data.model_dump_json(),
     )
 
     return SessionResponse(session_id=session_id)

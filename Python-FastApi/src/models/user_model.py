@@ -1,12 +1,16 @@
-from sqlalchemy import Column, String, Boolean
+from sqlalchemy import Column, String
+from sqlalchemy.orm import DeclarativeBase
 
-from src.models.base_model import Base, generate_uuid
+from src.config import generate_uuid
 
 
-class User(Base):
+class UserBase(DeclarativeBase):
+    pass
+
+
+class User(UserBase):
     __tablename__ = "users"
 
-    id = Column(String(511), primary_key=True, default=generate_uuid)
-    email = Column(String(127), unique=True, index=True)
-    hashed_password = Column(String(255))
-    is_active = Column(Boolean, default=True)
+    id = Column(String(512), primary_key=True, default=generate_uuid)
+    email = Column(String(128), unique=True, index=True)
+    hashed_password = Column(String(256))
