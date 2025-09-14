@@ -1,16 +1,14 @@
 import { Router } from "express"
-import { RequestHandler } from "express"
 
-import authRoutes from "./auth"
-import bookmarkRoutes from "./bookmarks"
-import { redirectToUrl } from "../controllers/redirectController"
+import authRoutes from "@/routes/auth"
+import bookmarkRoutes from "@/routes/bookmark"
+import { redirectToUrl } from "@/controllers/redirectControllers"
 
 const router: Router = Router()
 
 router.use("/auth", authRoutes)
 router.use("/bookmarks", bookmarkRoutes)
 
-// Short URL redirect (must be last to avoid conflicts)
-router.get("/:short_code", redirectToUrl as RequestHandler)
+router.get("/:short_code", redirectToUrl)
 
 export default router

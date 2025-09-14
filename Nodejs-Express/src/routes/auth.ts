@@ -1,28 +1,25 @@
-import { Router, RequestHandler } from "express"
-import { z } from "zod"
+import { NextFunction, Router, Request, Response } from "express"
 
-import { register, login } from "../controllers/authController"
+import { userSchema } from "@/schemas/user"
+import { register, token } from "@/controllers/authControllers"
+import z from "zod"
 
-const userSchema = z.object({
-    email: z.string().email("Email is required."),
-    password: z.string().min(1, "Password is required.")
-})
+const router = Router()
 
-const validateUser: RequestHandler = (request, response, next) => {
+const validateUser = (request: Request, response: Response, next: NextFunction): void => {
     const result = userSchema.safeParse(request.body)
     if (!result.success) {
-        const requiredFields = Object.keys(userSchema.shape)
+        const { properties } = z.treeifyError(result.error)
         response.status(400).json({
-            message: `Required fields: ${requiredFields.join(", ")}`,
+            message: "Invalid request body",
+            properties
         })
+        return
     }
-    request.body = result.data
     next()
 }
 
-const router: Router = Router()
-
-router.post("/register", validateUser, register as RequestHandler)
-router.post("/token", validateUser, login as RequestHandler)
+router.post("/register", validateUser, register)
+router.post("/token", validateUser, token)
 
 export default router
